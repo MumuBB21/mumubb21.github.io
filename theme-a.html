@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Theme A</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <a href="index.html" class="back-link" data-zh="← 返回主页" data-en="← Back to Home"></a>
+  <div class="language-toggle" id="langToggle">中文</div>
+
+  <div class="gallery" id="gallery">
+    <!-- 8 张 3:4 图片（自动加载 a1.jpg ~ a8.jpg） -->
+  </div>
+
+  <!-- ✏️ EDIT ME: 更新幕后信息（中英双语） -->
+  <div class="production-trigger" data-zh="制作信息" data-en="Production Notes"></div>
+  <div class="production-content"
+       data-zh="工具：Midjourney, Runway, Photoshop。技术重点：动态光照合成。生产流程：概念→草图→AI生成→后期调色。"
+       data-en="Tools: Midjourney, Runway, Photoshop. Tech Focus: Dynamic lighting compositing. Workflow: Concept → Sketch → AI Generation → Color Grading.">
+  </div>
+
+  <script src="assets/js/main.js"></script>
+  <script>
+    // 动态生成 8 张图片（便于你更新：只需替换 a1.jpg ~ a8.jpg）
+    const gallery = document.getElementById('gallery');
+    for (let i = 1; i <= 8; i++) {
+      const img = document.createElement('img');
+      img.src = `assets/images/theme-a/a${i}.jpg`;
+      img.alt = `Work ${i}`;
+      img.loading = "lazy";
+      gallery.appendChild(img);
+    }
+  </script>
+</body>
+</html>

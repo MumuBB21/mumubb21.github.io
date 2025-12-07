@@ -2,25 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Studio</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
 </head>
 <body>
   <div id="bg"></div>
 
-  <header>
-    <div class="logo">STUDIO</div>
-  </header>
+  <div class="language-toggle" id="langToggle">中文</div>
 
-  <main>
-    <div class="projects">
-      <a href="#" class="project">Project Alpha</a>
-      <a href="#" class="project">Project Beta</a>
-      <a href="#" class="project">Project Gamma</a>
-    </div>
+  <main class="home-grid">
+    <!-- ✏️ EDIT ME: 更新主题入口名称（中英双语） -->
+    <a href="theme-a.html" class="theme-link" data-zh="城市光影" data-en="Urban Glow"></a>
+    <a href="theme-b.html" class="theme-link" data-zh="数字肌理" data-en="Digital Texture"></a>
+    <a href="theme-c.html" class="theme-link" data-zh="未来档案" data-en="Future Archive"></a>
   </main>
 
-  <script type="module" src="script.js"></script>
+  <script type="module" src="assets/js/home-bg.js"></script>
+  <script src="assets/js/main.js"></script>
 </body>
 </html>

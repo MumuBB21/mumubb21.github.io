@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Theme C</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body class="theme-c">
+  <a href="index.html" class="back-link" data-zh="← 返回主页" data-en="← Back to Home"></a>
+  <div class="language-toggle" id="langToggle">中文</div>
+
+  <div class="gallery" id="gallery">
+    <!-- 8 张 16:9 图片（自动加载 c1.jpg ~ c8.jpg） -->
+  </div>
+
+  <!-- ✏️ EDIT ME: 更新幕后信息（中英双语） -->
+  <div class="production-trigger" data-zh="制作信息" data-en="Production Notes"></div>
+  <div class="production-content"
+       data-zh="工具：Stable Diffusion, Blender, DaVinci Resolve。技术重点：动态景深与色彩分级。生产流程：脚本→生成→3D整合→输出。"
+       data-en="Tools: Stable Diffusion, Blender, DaVinci Resolve. Tech Focus: Cinematic depth of field & color grading. Workflow: Script → Generation → 3D Integration → Export.">
+  </div>
+
+  <script src="assets/js/main.js"></script>
+  <script>
+    // 动态生成 8 张 16:9 图片
+    const gallery = document.getElementById('gallery');
+    for (let i = 1; i <= 8; i++) {
+      const img = document.createElement('img');
+      img.src = `assets/images/theme-c/c${i}.jpg`;
+      img.alt = `Work ${i}`;
+      img.loading = "lazy";
+      gallery.appendChild(img);
+    }
+  </script>
+</body>
+</html>
