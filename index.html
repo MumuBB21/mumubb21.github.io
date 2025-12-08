@@ -4,21 +4,328 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Studio</title>
-  <link rel="stylesheet" href="assets/css/style.css" />
+  <style>
+    /* 全局样式（含噪点、渐变、动效） */
+    :root {
+      --bg: radial-gradient(circle, #0a0a12, #000000);
+      --fg: #fff;
+      --accent: #a3d1ff;
+      --trans: all 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Helvetica Neue', system-ui, sans-serif;
+      font-weight: 200;
+      letter-spacing: 1px;
+      line-height: 1.6;
+      cursor: none;
+    }
+    /* 噪点纹理 */
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1000;
+    }
+    .cursor {
+      position: fixed;
+      width: 12px; height: 12px;
+      border: 1px solid var(--accent);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 10000;
+      mix-blend-mode: difference;
+    }
+    /* === 加载屏 === */
+    #loader {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      opacity: 1;
+      transition: opacity 0.8s;
+    }
+    #loader.hide { opacity: 0; pointer-events: none; }
+    .logo-placeholder {
+      font-size: 1.8rem;
+      opacity: 0.3;
+      letter-spacing: 4px;
+    }
+    /* === 内容区 === */
+    #app {
+      opacity: 0;
+      transition: opacity 0.6s 0.2s;
+    }
+    #app.loaded { opacity: 1; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .back-link, .language-toggle {
+      position: fixed;
+      color: var(--fg);
+      text-decoration: none;
+      font-size: 0.9rem;
+      opacity: 0.6;
+      transition: var(--trans);
+      z-index: 100;
+    }
+    .back-link:hover, .language-toggle:hover { opacity: 1; }
+    .back-link { top: 20px; left: 20px; }
+    .language-toggle { top: 20px; right: 20px; cursor: pointer; }
+    .home-grid {
+      display: grid;
+      place-items: center;
+      height: 100vh;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      padding: 0 2rem;
+    }
+    .theme-link {
+      color: var(--fg);
+      text-decoration: none;
+      font-size: 1.4rem;
+      padding: 1.5rem 2rem;
+      border: 1px solid rgba(255,255,255,0.15);
+      text-align: center;
+      transition: var(--trans);
+      backdrop-filter: blur(2px);
+      background: rgba(0,0,0,0.2);
+    }
+    .theme-link:hover {
+      background: rgba(163, 209, 255, 0.05);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5vw;
+      padding: 8vh 4vw;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .gallery img {
+      width: 100%;
+      height: auto;
+      display: block;
+      opacity: 0.95;
+      transition: var(--trans);
+      aspect-ratio: 3/4;
+    }
+    .theme-b .gallery img { aspect-ratio: 1/1; }
+    .theme-c .gallery img { aspect-ratio: 16/9; }
+    .gallery img:hover { opacity: 1; transform: scale(1.02); }
+    .production-trigger {
+      display: block;
+      width: fit-content;
+      margin: 4rem auto 2rem;
+      padding: 0.6rem 1.5rem;
+      border: 1px solid rgba(255,255,255,0.3);
+      cursor: pointer;
+      transition: var(--trans);
+    }
+    .production-trigger:hover {
+      background: rgba(163, 209, 255, 0.05);
+      border-color: var(--accent);
+    }
+    .production-content {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 2rem 4rem;
+      opacity: 0;
+      height: 0;
+      overflow: hidden;
+      transition: opacity 0.5s, height 0.5s;
+      white-space: pre-line;
+      font-weight: 300;
+    }
+    .production-content.active {
+      opacity: 0.85;
+      height: auto;
+    }
+    @media (max-width: 768px) {
+      .home-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+      .gallery { grid-template-columns: 1fr; gap: 4vw; padding: 6vh 6vw; }
+    }
+  </style>
 </head>
 <body>
-  <div id="bg"></div>
+  <!-- 自定义光标 -->
+  <div class="cursor" id="cursor"></div>
 
-  <div class="language-toggle" id="langToggle">中文</div>
+  <!-- 加载动画 -->
+  <div id="loader">
+    <div class="logo-placeholder">STUDIO</div>
+  </div>
 
-  <main class="home-grid">
-    <!-- ✏️ EDIT ME: 更新主题入口名称（中英双语） -->
-    <a href="theme-a.html" class="theme-link" data-zh="城市光影" data-en="Urban Glow"></a>
-    <a href="theme-b.html" class="theme-link" data-zh="数字肌理" data-en="Digital Texture"></a>
-    <a href="theme-c.html" class="theme-link" data-zh="未来档案" data-en="Future Archive"></a>
-  </main>
+  <!-- SPA 内容容器 -->
+  <div id="app">
+    <div id="page-container"></div>
+  </div>
 
-  <script type="module" src="assets/js/home-bg.js"></script>
-  <script src="assets/js/main.js"></script>
+  <script type="module">
+    // === Three.js 加载动画（简化版）===
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
+
+    const loader = document.getElementById('loader');
+    const app = document.getElementById('app');
+    const pageContainer = document.getElementById('page-container');
+    const cursor = document.getElementById('cursor');
+
+    // 自定义光标
+    document.addEventListener('mousemove', (e) => {
+      cursor.style.left = e.clientX + 'px';
+      cursor.style.top = e.clientY + 'px';
+    });
+
+    // 模拟加载（实际可监听资源加载）
+    setTimeout(() => {
+      loader.classList.add('hide');
+      app.classList.add('loaded');
+    }, 3000);
+
+    // === SPA 路由与内容 ===
+    const pages = {
+      '/': `
+        <a href="/" class="back-link" style="display:none"></a>
+        <div class="language-toggle" data-zh="中文" data-en="EN">中文</div>
+        <main class="home-grid">
+          <a href="/theme-a" class="theme-link" data-zh="城市光影" data-en="Urban Glow">Urban Glow</a>
+          <a href="/theme-b" class="theme-link" data-zh="数字肌理" data-en="Digital Texture">Digital Texture</a>
+          <a href="/theme-c" class="theme-link" data-zh="未来档案" data-en="Future Archive">Future Archive</a>
+        </main>
+      `,
+      '/theme-a': `
+        <a href="/" class="back-link" data-zh="← 返回主页" data-en="← Back to Home">← Back to Home</a>
+        <div class="language-toggle" data-zh="中文" data-en="EN">中文</div>
+        <div class="gallery" id="gallery-a"></div>
+        <div class="production-trigger" data-zh="制作信息" data-en="Production Notes">Production Notes</div>
+        <div class="production-content" 
+             data-zh="工具：Midjourney, Photoshop, After Effects\n技术重点：动态光影合成与粒子系统\n生产流程：\n1. 概念构思与关键词提炼\n2. AI生成多轮迭代\n3. 后期合成与动态化\n4. 色彩分级与输出"
+             data-en="Tools: Midjourney, Photoshop, After Effects\nTech Focus: Dynamic lighting compositing & particle systems\nWorkflow:\n1. Concept development & prompt engineering\n2. Multi-round AI generation\n3. Post-compositing & animation\n4. Color grading & export">
+        </div>
+        <script>
+          const gallery = document.getElementById('gallery-a');
+          for (let i = 1; i <= 8; i++) {
+            const img = document.createElement('img');
+            img.src = \`assets/images/theme-a/a\${i}.jpg\`;
+            img.alt = \`Work \${i}\`;
+            gallery.appendChild(img);
+          }
+        <\/script>
+      `,
+      '/theme-b': `
+        <a href="/" class="back-link" data-zh="← 返回主页" data-en="← Back to Home">← Back to Home</a>
+        <div class="language-toggle" data-zh="中文" data-en="EN">中文</div>
+        <div class="gallery" id="gallery-b"></div>
+        <div class="production-trigger" data-zh="制作信息" data-en="Production Notes">Production Notes</div>
+        <div class="production-content" 
+             data-zh="工具：Blender, Stable Diffusion, DaVinci Resolve\n技术重点：3D建模与AI纹理生成\n生产流程：\n1. 建筑概念草图\n2. AI生成环境氛围图\n3. 3D建模与材质绑定\n4. 渲染合成与动态镜头"
+             data-en="Tools: Blender, Stable Diffusion, DaVinci Resolve\nTech Focus: 3D modeling & AI texture generation\nWorkflow:\n1. Architectural concept sketching\n2. AI-generated environment mood\n3. 3D modeling & material binding\n4. Rendering & cinematic output">
+        </div>
+        <script>
+          const gallery = document.getElementById('gallery-b');
+          for (let i = 1; i <= 8; i++) {
+            const img = document.createElement('img');
+            img.src = \`assets/images/theme-b/b\${i}.jpg\`;
+            img.alt = \`Work \${i}\`;
+            gallery.appendChild(img);
+          }
+        <\/script>
+      `,
+      '/theme-c': `
+        <a href="/" class="back-link" data-zh="← 返回主页" data-en="← Back to Home">← Back to Home</a>
+        <div class="language-toggle" data-zh="中文" data-en="EN">中文</div>
+        <div class="gallery" id="gallery-c"></div>
+        <div class="production-trigger" data-zh="制作信息" data-en="Production Notes">Production Notes</div>
+        <div class="production-content" 
+             data-zh="工具：Runway ML, Cinema 4D, Procreate\n技术重点：抽象构成与色彩心理学\n生产流程：\n1. 情绪板与色彩研究\n2. AI生成基础纹理\n3. 手绘细节增强\n4. 动态化与输出"
+             data-en="Tools: Runway ML, Cinema 4D, Procreate\nTech Focus: Abstract composition & color psychology\nWorkflow:\n1. Mood board & color research\n2. AI-generated base textures\n3. Hand-drawn detail enhancement\n4. Animation & export">
+        </div>
+        <script>
+          const gallery = document.getElementById('gallery-c');
+          for (let i = 1; i <= 8; i++) {
+            const img = document.createElement('img');
+            img.src = \`assets/images/theme-c/c\${i}.jpg\`;
+            img.alt = \`Work \${i}\`;
+            gallery.appendChild(img);
+          }
+        <\/script>
+      `
+    };
+
+    // 渲染页面
+    function renderPage(path) {
+      const content = pages[path] || pages['/'];
+      pageContainer.innerHTML = content;
+
+      // 绑定语言切换
+      const langToggle = document.querySelector('.language-toggle');
+      if (langToggle) {
+        const isZh = localStorage.getItem('lang') !== 'en';
+        langToggle.textContent = isZh ? '中文' : 'EN';
+        langToggle.onclick = () => {
+          const nowEn = langToggle.textContent === '中文';
+          langToggle.textContent = nowEn ? 'EN' : '中文';
+          localStorage.setItem('lang', nowEn ? 'en' : 'zh');
+          updateLanguage(nowEn);
+        };
+        updateLanguage(!isZh);
+      }
+
+      // 绑定制作信息展开
+      const trigger = document.querySelector('.production-trigger');
+      const contentBox = document.querySelector('.production-content');
+      if (trigger && contentBox) {
+        trigger.onclick = () => contentBox.classList.toggle('active');
+      }
+
+      // 执行内联脚本
+      const scripts = pageContainer.querySelectorAll('script');
+      scripts.forEach(script => {
+        const newScript = document.createElement('script');
+        if (script.src) newScript.src = script.src;
+        else newScript.textContent = script.textContent;
+        document.body.appendChild(newScript);
+        script.remove();
+      });
+
+      // 设置 body class
+      document.body.className = path.includes('theme-b') ? 'theme-b' : path.includes('theme-c') ? 'theme-c' : '';
+    }
+
+    // 更新语言
+    function updateLanguage(isEn) {
+      document.querySelectorAll('[data-zh][data-en]').forEach(el => {
+        el.textContent = isEn ? el.dataset.en : el.dataset.zh;
+      });
+    }
+
+    // 路由监听
+    function navigate(path) {
+      history.pushState(null, '', path);
+      renderPage(path);
+      window.scrollTo(0, 0);
+    }
+
+    window.addEventListener('popstate', () => renderPage(location.pathname));
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('a[href^="/"]')) {
+        e.preventDefault();
+        navigate(e.target.closest('a').getAttribute('href'));
+      }
+    });
+
+    // 初始渲染
+    renderPage(location.pathname);
+  </script>
 </body>
 </html>
